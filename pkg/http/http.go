@@ -36,13 +36,18 @@ func (i *HTTPInstanceAPI) Run() {
 	r := router.New()
 
 	r.GET("/", i.handleRoot)
-	r.GET("/video", i.getVideo)
+	// Put manual video
+	r.POST("/video/folder/manual", i.postVideoFolder)
+
+	// Video stream
+	r.GET("/video", i.watchVideo)
+	r.POST("/video/upload", i.uploadVideo)
 
 	i.log.Infof("Starting server at %s", i.bind)
 	s := &fasthttp.Server{
 		Handler:            r.Handler,
 		Name:               "Video_Streaming",
-		MaxRequestBodySize: 32 * 1024 * 1024 * 1024, // 32MiB
+		MaxRequestBodySize: 64 * 1024 * 1024 * 1024, // 64MiB
 	}
 	log.Fatal(s.ListenAndServe(i.bind))
 }
@@ -53,7 +58,7 @@ func handleRequest(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
 	ctx.Response.Header.Add("Access-Control-Allow-Credentials", "true")
 	ctx.Response.Header.Add("Access-Control-Expose-Headers", "*")
-	ctx.Response.Header.Add("Content-type", "application/json charset=utf-8")
+	ctx.Response.Header.Add("Content-type", "application/json charset=utf-8 video/mp4")
 }
 
 func (i *HTTPInstanceAPI) handleRoot(ctx *fasthttp.RequestCtx) {
