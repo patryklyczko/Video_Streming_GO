@@ -10,13 +10,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
-	confOptMongoPassword = 
-	confOptMongoUser     = "Video_GO"
-	confOptMongoDatabase = "Video_GO"
+	confOptMongoPassword = "MONGO_PASSWORD"
+	confOptMongoUser     = "MONGO_USER"
+	confOptMongoDatabase = "MONGO_DATABASE"
 )
 
 func main() {
@@ -27,12 +28,16 @@ func main() {
 }
 
 func createServerFromConfig(logger *logrus.Logger, bind string) *http.HTTPInstanceAPI {
+	viper.SetConfigFile(".env")
+	viper.SetConfigType("env")
+	viper.AddConfigPath(".")
+	viper.ReadInConfig()
 
 	serverAPIOptions := options.ServerAPI(options.ServerAPIVersion1)
 	mongoURI := fmt.Sprintf(
 		"mongodb+srv://%s:%s@videogo.p3ubuzc.mongodb.net/?retryWrites=true&w=majority&ssl=true",
-		confOptMongoUser,
-		confOptMongoPassword)
+		viper.GetString(confOptMongoUser),
+		viper.GetString(confOptMongoPassword))
 
 	clientOptions := options.Client().
 		ApplyURI(mongoURI).
@@ -43,9 +48,14 @@ func createServerFromConfig(logger *logrus.Logger, bind string) *http.HTTPInstan
 		logger.WithError(err).Fatal("could not instatiate ")
 	}
 
+	bucket, err := gridfs.NewBucket(
+		client.Database("Video_GO"),
+		options.GridFSBucket().SetName("Videos"),
+	)
 	dbController := db.NewDBController(
 		logger.WithField("component", "db"),
 		client.Database(viper.GetString(confOptMongoDatabase)),
+		bucket,
 	)
 	instanceAPI := api.NewInstanceAPI(
 		logger.WithField("component", "api"),
