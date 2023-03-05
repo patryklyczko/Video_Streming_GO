@@ -35,7 +35,7 @@ func createServerFromConfig(logger *logrus.Logger, bind string) *http.HTTPInstan
 
 	serverAPIOptions := options.ServerAPI(options.ServerAPIVersion1)
 	mongoURI := fmt.Sprintf(
-		"mongodb+srv://%s:%s@videogo.p3ubuzc.mongodb.net/?retryWrites=true&w=majority&ssl=true",
+		"mongodb+srv://%s:%s@videogo.nfrxerb.mongodb.net/?retryWrites=true&w=majority",
 		viper.GetString(confOptMongoUser),
 		viper.GetString(confOptMongoPassword))
 
