@@ -56,11 +56,7 @@ func (d *DBController) PostVideoFolder(video VideoRequestFolder) error {
 		Likes:        0,
 		LastWatched:  time.Now(),
 	}
-	videoInfoBytes, err := bson.Marshal(videoInfo)
-	if err != nil {
-		return err
-	}
-	_, err = collection.InsertOne(context.Background(), videoInfoBytes)
+	_, err = collection.InsertOne(context.Background(), videoInfo)
 	if err != nil {
 		return err
 	}
