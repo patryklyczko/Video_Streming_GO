@@ -16,3 +16,7 @@ func (a *InstanceAPI) WatchVideo(video db.VideoRequest) (*gridfs.DownloadStream,
 func (a *InstanceAPI) AddVideo(file []byte, name string) error {
 	return a.dbController.AddVideo(file, name)
 }
+
+func (a *InstanceAPI) Videos(videoFilter db.VideoFilter) ([]db.VideoInfo, error) {
+	return a.dbController.Videos(videoFilter)
+}

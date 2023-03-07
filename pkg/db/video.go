@@ -1,10 +1,14 @@
 package db
 
 import (
+	"context"
 	"io/ioutil"
+	"log"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type VideoRequestFolder struct {
@@ -16,17 +20,18 @@ type VideoRequest struct {
 	Name string `json:"name"`
 }
 
-type FileChunk struct {
-	ID      primitive.ObjectID `bson:"_id,omitempty"`
-	FilesID primitive.ObjectID `bson:"files_id,omitempty"`
-	N       int32              `bson:"n,omitempty"`
-	Data    []byte             `bson:"data,omitempty"`
+type VideoInfo struct {
+	ID         primitive.ObjectID `json:"_id" bson:"_id"`
+	Length     int64              `json:"length" bson:"length"`
+	ChunkSize  int64              `json:"chunk_size" bson:"chunkSize"`
+	UploadDate *time.Time         `json:"upload_data" bson:"uploadData"`
+	FileName   string             `json:"filename" bson:"filename"`
 }
 
 type VideoFilter struct {
-	Name   string `json:"name"`
-	Chunks int32  `json:"chunks"`
-	IsNew  bool   `json:"is_new"`
+	Name   string `json:"name" bson:"name"`
+	Chunks int32  `json:"chunks" bson:"chunks"`
+	// IsNew  bool   `json:"is_new" bson:"is_new"`
 }
 
 func (d *DBController) PostVideoFolder(video VideoRequestFolder) error {
@@ -72,4 +77,22 @@ func (d *DBController) AddVideo(file []byte, name string) error {
 	}
 
 	return nil
+}
+
+func (d *DBController) Videos(videoFilter VideoFilter) ([]VideoInfo, error) {
+	var videos []VideoInfo
+
+	cursor, err := d.bucket.Find(bson.M{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := cursor.Close(context.TODO()); err != nil {
+			return
+		}
+	}()
+	if err = cursor.All(context.TODO(), &videos); err != nil {
+		log.Fatal(err)
+	}
+	return videos, nil
 }

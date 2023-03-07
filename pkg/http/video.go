@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"strconv"
 
 	"github.com/patryklyczko/Video_Streming_GO/pkg/db"
 	"github.com/valyala/fasthttp"
@@ -81,18 +82,32 @@ func (i *HTTPInstanceAPI) uploadVideo(ctx *fasthttp.RequestCtx) {
 
 }
 
-// func (i *HTTPInstanceAPI) videos(ctx *fasthttp.RequestCtx) {
-// 	i.log.Debugf("Got request show videos")
-// 	var videoFilter db.VideoFilter
-// 	body := ctx.Request.Body()
+func (i *HTTPInstanceAPI) videos(ctx *fasthttp.RequestCtx) {
+	i.log.Debugf("Got request show videos")
+	var videoFilter db.VideoFilter
+	var videos []db.VideoInfo
+	var err error
+	var body []byte
 
-// 	if err := json.Unmarshal(body, &videoFilter); err != nil {
-// 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-// 		i.log.Errorf("error while unmarshaling %v", err)
-// 		return
-// 	}
+	args := ctx.QueryArgs()
+	chunks, _ := strconv.Atoi(string(args.Peek("chunks")))
+	videoFilter = db.VideoFilter{
+		Name:   string(args.Peek("name")),
+		Chunks: int32(chunks),
+	}
 
-// 	if
-// 	i.log.Debugf("Upload video")
-// 	ctx.Response.SetStatusCode(fasthttp.StatusCreated)
-// }
+	if videos, err = i.api.Videos(videoFilter); err != nil {
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		i.log.Errorf("error getting videos %v", err)
+		return
+	}
+
+	if body, err = json.Marshal(videos); err != nil {
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		i.log.Errorf("error marshaling data %v", err)
+		return
+	}
+
+	ctx.Response.SetStatusCode(fasthttp.StatusOK)
+	ctx.Response.SetBody(body)
+}
