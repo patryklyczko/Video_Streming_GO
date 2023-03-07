@@ -17,7 +17,7 @@ type VideoRequestFolder struct {
 }
 
 type VideoRequest struct {
-	Name string `json:"name"`
+	Filename string `json:"filename"`
 }
 
 type VideoInfo struct {
@@ -55,7 +55,7 @@ func (d *DBController) PostVideoFolder(video VideoRequestFolder) error {
 func (d *DBController) WatchVideo(video VideoRequest) (*gridfs.DownloadStream, error) {
 	var stream *gridfs.DownloadStream
 	var err error
-	if stream, err = d.bucket.OpenDownloadStreamByName(video.Name); err != nil {
+	if stream, err = d.bucket.OpenDownloadStreamByName(video.Filename); err != nil {
 		return nil, err
 	}
 
@@ -94,4 +94,23 @@ func (d *DBController) Videos(videoFilter VideoFilter) ([]VideoInfo, error) {
 		log.Fatal(err)
 	}
 	return videos, nil
+}
+
+func (d *DBController) DeleteVideo(name string) error {
+	var videos []VideoInfo
+	var err error
+
+	videoFilter := VideoFilter{
+		Filename: name,
+	}
+	if videos, err = d.Videos(videoFilter); err != nil {
+		return err
+	}
+	for _, video := range videos {
+		if err := d.bucket.Delete(video.ID); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

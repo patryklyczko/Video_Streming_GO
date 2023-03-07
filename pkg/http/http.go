@@ -41,8 +41,9 @@ func (i *HTTPInstanceAPI) Run() {
 
 	// Video stream
 	r.GET("/video", i.watchVideo)
-	r.POST("/video/upload", i.uploadVideo)
 	r.GET("/video/name", i.videos)
+	r.POST("/video/upload", i.uploadVideo)
+	r.DELETE("/video", i.deleteVideo)
 
 	i.log.Infof("Starting server at %s", i.bind)
 	s := &fasthttp.Server{

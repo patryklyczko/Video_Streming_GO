@@ -3,7 +3,6 @@ package http
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 
 	"github.com/patryklyczko/Video_Streming_GO/pkg/db"
 	"github.com/valyala/fasthttp"
@@ -25,7 +24,7 @@ func (i *HTTPInstanceAPI) postVideoFolder(ctx *fasthttp.RequestCtx) {
 		i.log.Debugf("Error while updating video %v", err)
 		return
 	}
-	i.log.Debugf("Upload video")
+	i.log.Debugf("Upload video %s", VideoUpdate.Name)
 	ctx.Response.SetStatusCode(fasthttp.StatusCreated)
 }
 
@@ -37,7 +36,7 @@ func (i *HTTPInstanceAPI) watchVideo(ctx *fasthttp.RequestCtx) {
 
 	args := ctx.QueryArgs()
 	VideoRequest := db.VideoRequest{
-		Name: string(args.Peek("name")),
+		Filename: string(args.Peek("filename")),
 	}
 	if video, err = i.api.WatchVideo(VideoRequest); err != nil {
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
@@ -48,8 +47,6 @@ func (i *HTTPInstanceAPI) watchVideo(ctx *fasthttp.RequestCtx) {
 }
 
 func (i *HTTPInstanceAPI) uploadVideo(ctx *fasthttp.RequestCtx) {
-	indexData, err := ioutil.ReadFile("./static/index.html")
-	ctx.Write(indexData)
 	file, err := ctx.FormFile("file")
 	if err != nil {
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
@@ -107,4 +104,23 @@ func (i *HTTPInstanceAPI) videos(ctx *fasthttp.RequestCtx) {
 
 	ctx.Response.SetStatusCode(fasthttp.StatusOK)
 	ctx.Response.SetBody(body)
+}
+
+func (i *HTTPInstanceAPI) deleteVideo(ctx *fasthttp.RequestCtx) {
+	var videoName db.VideoRequest
+	body := ctx.Request.Body()
+
+	if err := json.Unmarshal(body, &videoName); err != nil {
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		i.log.Errorf("error while unmarshaling %v", err)
+		return
+	}
+
+	if err := i.api.DeleteVideo(videoName.Filename); err != nil {
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		i.log.Errorf("error deleting video %v", err)
+		return
+	}
+	i.log.Debugf("Succesfully deleted video %s", videoName.Filename)
+	ctx.Response.SetStatusCode(fasthttp.StatusOK)
 }

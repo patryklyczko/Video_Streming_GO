@@ -20,3 +20,7 @@ func (a *InstanceAPI) AddVideo(file []byte, name string) error {
 func (a *InstanceAPI) Videos(videoFilter db.VideoFilter) ([]db.VideoInfo, error) {
 	return a.dbController.Videos(videoFilter)
 }
+
+func (a *InstanceAPI) DeleteVideo(name string) error {
+	return a.dbController.DeleteVideo(name)
+}
