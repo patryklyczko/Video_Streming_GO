@@ -9,11 +9,11 @@ import (
 
 type VideoRequestFolder struct {
 	Path string `json:"path"`
+	Name string `json:"name"`
 }
 
-type Video struct {
-	Name    string             `json:"name"`
-	VideoID primitive.ObjectID `json:"video_id"`
+type VideoRequest struct {
+	Name string `json:"name"`
 }
 
 type FileChunk struct {
@@ -23,14 +23,20 @@ type FileChunk struct {
 	Data    []byte             `bson:"data,omitempty"`
 }
 
-func (d *DBController) PostVideoFolder(path string) error {
-	videoBytes, err := ioutil.ReadFile(path)
+type VideoFilter struct {
+	Name   string `json:"name"`
+	Chunks int32  `json:"chunks"`
+	IsNew  bool   `json:"is_new"`
+}
+
+func (d *DBController) PostVideoFolder(video VideoRequestFolder) error {
+	videoBytes, err := ioutil.ReadFile(video.Path)
 	if err != nil {
 		return err
 	}
 
 	uploadStream, err := d.bucket.OpenUploadStream(
-		"fish.mp4",
+		video.Name,
 	)
 	if _, err = uploadStream.Write(videoBytes); err != nil {
 		return nil
@@ -43,10 +49,10 @@ func (d *DBController) PostVideoFolder(path string) error {
 	return nil
 }
 
-func (d *DBController) WatchVideo(name string) (*gridfs.DownloadStream, error) {
+func (d *DBController) WatchVideo(video VideoRequest) (*gridfs.DownloadStream, error) {
 	var stream *gridfs.DownloadStream
 	var err error
-	if stream, err = d.bucket.OpenDownloadStreamByName("fish.mp4"); err != nil {
+	if stream, err = d.bucket.OpenDownloadStreamByName(video.Name); err != nil {
 		return nil, err
 	}
 

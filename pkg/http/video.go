@@ -21,7 +21,7 @@ func (i *HTTPInstanceAPI) postVideoFolder(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if err := i.api.PostVideoFolder(VideoUpdate.Path); err != nil {
+	if err := i.api.PostVideoFolder(VideoUpdate); err != nil {
 		i.log.Debugf("Error while updating video %v", err)
 		return
 	}
@@ -36,8 +36,10 @@ func (i *HTTPInstanceAPI) watchVideo(ctx *fasthttp.RequestCtx) {
 	var err error
 
 	args := ctx.QueryArgs()
-
-	if video, err = i.api.WatchVideo(string(args.Peek("name"))); err != nil {
+	VideoRequest := db.VideoRequest{
+		Name: string(args.Peek("name")),
+	}
+	if video, err = i.api.WatchVideo(VideoRequest); err != nil {
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		i.log.Errorf("error while getting video %v", err)
 		return
@@ -78,3 +80,19 @@ func (i *HTTPInstanceAPI) uploadVideo(ctx *fasthttp.RequestCtx) {
 	ctx.Response.SetStatusCode(fasthttp.StatusCreated)
 
 }
+
+// func (i *HTTPInstanceAPI) videos(ctx *fasthttp.RequestCtx) {
+// 	i.log.Debugf("Got request show videos")
+// 	var videoFilter db.VideoFilter
+// 	body := ctx.Request.Body()
+
+// 	if err := json.Unmarshal(body, &videoFilter); err != nil {
+// 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+// 		i.log.Errorf("error while unmarshaling %v", err)
+// 		return
+// 	}
+
+// 	if
+// 	i.log.Debugf("Upload video")
+// 	ctx.Response.SetStatusCode(fasthttp.StatusCreated)
+// }
