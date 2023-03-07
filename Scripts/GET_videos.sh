@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Example ./GET_videos.sh "name=fish.mp4&chunks=1000000"
+# Example ./GET_videos.sh "filename=fish"
 URL="http://localhost:8000/video/name"
 
 QUERY_PARAMS=${1:-}

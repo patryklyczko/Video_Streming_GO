@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"strconv"
 
 	"github.com/patryklyczko/Video_Streming_GO/pkg/db"
 	"github.com/valyala/fasthttp"
@@ -90,10 +89,8 @@ func (i *HTTPInstanceAPI) videos(ctx *fasthttp.RequestCtx) {
 	var body []byte
 
 	args := ctx.QueryArgs()
-	chunks, _ := strconv.Atoi(string(args.Peek("chunks")))
 	videoFilter = db.VideoFilter{
-		Name:   string(args.Peek("name")),
-		Chunks: int32(chunks),
+		Filename: string(args.Peek("filename")),
 	}
 
 	if videos, err = i.api.Videos(videoFilter); err != nil {

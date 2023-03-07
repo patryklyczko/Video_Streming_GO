@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type VideoRequestFolder struct {
@@ -29,9 +29,7 @@ type VideoInfo struct {
 }
 
 type VideoFilter struct {
-	Name   string `json:"name" bson:"name"`
-	Chunks int32  `json:"chunks" bson:"chunks"`
-	// IsNew  bool   `json:"is_new" bson:"is_new"`
+	Filename string `json:"filename" bson:"filename"`
 }
 
 func (d *DBController) PostVideoFolder(video VideoRequestFolder) error {
@@ -82,7 +80,8 @@ func (d *DBController) AddVideo(file []byte, name string) error {
 func (d *DBController) Videos(videoFilter VideoFilter) ([]VideoInfo, error) {
 	var videos []VideoInfo
 
-	cursor, err := d.bucket.Find(bson.M{})
+	filter := bson.M{"filename": bson.M{"$regex": ".*" + videoFilter.Filename + ".*", "$options": "i"}}
+	cursor, err := d.bucket.Find(filter)
 	if err != nil {
 		log.Fatal(err)
 	}

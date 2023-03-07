@@ -39,5 +39,4 @@ require (
 	github.com/valyala/fasthttp v1.44.0
 	go.mongodb.org/mongo-driver v1.11.2
 	golang.org/x/sys v0.3.0 // indirect
-	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 )
