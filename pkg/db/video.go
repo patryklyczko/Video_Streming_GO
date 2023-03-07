@@ -33,6 +33,7 @@ type VideoFilter struct {
 }
 
 func (d *DBController) PostVideoFolder(video VideoRequestFolder) error {
+	collection := d.db.Collection("VideoInfo")
 	videoBytes, err := ioutil.ReadFile(video.Path)
 	if err != nil {
 		return err
@@ -46,6 +47,21 @@ func (d *DBController) PostVideoFolder(video VideoRequestFolder) error {
 	}
 
 	if err := uploadStream.Close(); err != nil {
+		return err
+	}
+
+	videoInfo := VideoInformation{
+		VideoName:    video.Name,
+		WatchedTimes: 0,
+		Likes:        0,
+		LastWatched:  time.Now(),
+	}
+	videoInfoBytes, err := bson.Marshal(videoInfo)
+	if err != nil {
+		return err
+	}
+	_, err = collection.InsertOne(context.Background(), videoInfoBytes)
+	if err != nil {
 		return err
 	}
 

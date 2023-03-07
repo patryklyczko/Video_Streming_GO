@@ -45,6 +45,8 @@ func (i *HTTPInstanceAPI) Run() {
 	r.POST("/video/upload", i.uploadVideo)
 	r.DELETE("/video", i.deleteVideo)
 
+	// Video information views, etc
+	r.GET("/video/info", i.videoInfo)
 	i.log.Infof("Starting server at %s", i.bind)
 	s := &fasthttp.Server{
 		Handler:            r.Handler,
