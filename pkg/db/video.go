@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type VideoRequestFolder struct {
@@ -65,9 +66,18 @@ func (d *DBController) PostVideoFolder(video VideoRequestFolder) error {
 }
 
 func (d *DBController) WatchVideo(video VideoRequest) (*gridfs.DownloadStream, error) {
+	collection := d.db.Collection("VideoInfo")
 	var stream *gridfs.DownloadStream
 	var err error
-	if stream, err = d.bucket.OpenDownloadStreamByName(video.Filename); err != nil {
+	if stream, err = d.bucket.OpenDownloadStreamByName("fish"); err != nil {
+		return nil, err
+	}
+
+	filter := bson.M{"video_name": video.Filename}
+	update := bson.M{"$inc": bson.M{"watched_times": 1}, "$set": bson.M{"last_watched": time.Now()}}
+	opts := options.Update().SetUpsert(false)
+	_, err = collection.UpdateOne(context.Background(), filter, update, opts)
+	if err != nil {
 		return nil, err
 	}
 
@@ -109,6 +119,7 @@ func (d *DBController) Videos(videoFilter VideoFilter) ([]VideoInfo, error) {
 }
 
 func (d *DBController) DeleteVideo(name string) error {
+	collection := d.db.Collection("VideoInfo")
 	var videos []VideoInfo
 	var err error
 
@@ -119,9 +130,15 @@ func (d *DBController) DeleteVideo(name string) error {
 		return err
 	}
 	for _, video := range videos {
-		if err := d.bucket.Delete(video.ID); err != nil {
+		if err := d.bucket.Delete(video.FileName); err != nil {
 			return err
 		}
+	}
+
+	filter := bson.M{"filename": name}
+	_, err = collection.DeleteOne(context.Background(), filter)
+	if err != nil {
+		return err
 	}
 
 	return nil
